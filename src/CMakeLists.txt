@@ -12,7 +12,7 @@ add_subdirectory(planner)
 add_subdirectory(primer)
 add_subdirectory(optimizer)
 
-add_library(bustub STATIC ${ALL_OBJECT_FILES})
+add_library(bustub STATIC ${ALL_OBJECT_FILES} main/main.cpp main/main.cpp)
 
 set(BUSTUB_LIBS
         bustub_binder
