@@ -51,6 +51,17 @@ TEST(TrieTest, PutGetOnePath) {
   ASSERT_EQ(*trie.Get<uint32_t>("1111"), 1111);
 }
 
+TEST(TrieTest, MyTest) {
+  auto trie = Trie();
+  // Put something
+  trie = trie.Put<uint32_t>("test", 2333);
+  //trie = trie.Put<uint32_t>("te", 23);
+  trie = trie.Remove("test");
+  trie = trie.Remove("te");
+  ASSERT_EQ(trie.Get<uint32_t>("test"), nullptr);
+  ASSERT_EQ(trie.Get<uint32_t>("te"), nullptr);
+}
+
 TEST(TrieTest, BasicRemoveTest1) {
   auto trie = Trie();
   // Put something
