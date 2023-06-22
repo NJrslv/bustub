@@ -8,13 +8,14 @@ namespace bustub {
 template <class T>
 auto Trie::Get(std::string_view key) const -> const T* {
   auto node = root_;
-
   for (auto c : key) {
+    if(!node) {
+      return nullptr;
+    }
     auto next = node->children_.find(c);
     if (next == node->children_.cend()) {
       return nullptr;
     }
-
     node = next->second;
   }
 
@@ -47,7 +48,7 @@ auto Trie::Put(std::string_view key, T value) const -> Trie {
         clone_ptr->children_[*c] = std::make_shared<const TrieNode>();
         mismatch = true;
       } else {
-        clone_ptr->children_[*c] = next->second->Clone();
+        clone_ptr->children_[*c] = next->second ?  next->second->Clone() : nullptr;
       }
       this_ptr = std::const_pointer_cast<TrieNode>(next->second);
     }
