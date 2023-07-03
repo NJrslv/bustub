@@ -17,6 +17,8 @@
 #include <mutex>  // NOLINT
 #include <unordered_map>
 #include <vector>
+#include <set>
+#include <memory>
 
 #include "common/config.h"
 #include "common/macros.h"
@@ -26,14 +28,38 @@ namespace bustub {
 enum class AccessType { Unknown = 0, Get, Scan };
 
 class LRUKNode {
+ public:
+  LRUKNode() = default;
+
+  LRUKNode(frame_id_t fid, size_t k) : k_(k), fid_(fid) {}
+
+  auto GetFid() const -> frame_id_t { return fid_; }
+
+  void SetIsEvictable(bool isEvictable) { is_evictable_ = isEvictable; }
+
+  auto IsEvictable() const -> bool { return is_evictable_; }
+
+  auto GetHistorySize() const -> size_t { return history_.size();}
+
+  void ClearHistory() { history_.clear(); }
+
+  auto GetK() const -> size_t { return k_; }
+
+  auto GetFrontHistory() const -> size_t { return history_.front(); }
+
+  void AddHistoryEntry(size_t timestamp) {
+    history_.push_back(timestamp);
+    if (GetHistorySize() > k_) {
+      history_.pop_front();
+    }
+  }
+
  private:
   /** History of last seen K timestamps of this page. Least recent timestamp stored in front. */
-  // Remove maybe_unused if you start using them. Feel free to change the member variables as you want.
-
-  [[maybe_unused]] std::list<size_t> history_;
-  [[maybe_unused]] size_t k_;
-  [[maybe_unused]] frame_id_t fid_;
-  [[maybe_unused]] bool is_evictable_{false};
+  std::list<size_t> history_;
+  size_t k_{};
+  frame_id_t fid_{};
+  bool is_evictable_{false};
 };
 
 /**
@@ -44,15 +70,12 @@ class LRUKNode {
  * current timestamp and the timestamp of kth previous access.
  *
  * A frame with less than k historical references is given
- * +inf as its backward k-distance. When multipe frames have +inf backward k-distance,
+ * +inf as its backward k-distance. When multiple frames have +inf backward k-distance,
  * classical LRU algorithm is used to choose victim.
  */
 class LRUKReplacer {
  public:
   /**
-   *
-   * TODO(P1): Add implementation
-   *
    * @brief a new LRUKReplacer.
    * @param num_frames the maximum number of frames the LRUReplacer will be required to store
    */
@@ -61,15 +84,11 @@ class LRUKReplacer {
   DISALLOW_COPY_AND_MOVE(LRUKReplacer);
 
   /**
-   * TODO(P1): Add implementation
-   *
    * @brief Destroys the LRUReplacer.
    */
   ~LRUKReplacer() = default;
 
   /**
-   * TODO(P1): Add implementation
-   *
    * @brief Find the frame with largest backward k-distance and evict that frame. Only frames
    * that are marked as 'evictable' are candidates for eviction.
    *
@@ -86,8 +105,6 @@ class LRUKReplacer {
   auto Evict(frame_id_t *frame_id) -> bool;
 
   /**
-   * TODO(P1): Add implementation
-   *
    * @brief Record the event that the given frame id is accessed at current timestamp.
    * Create a new entry for access history if frame id has not been seen before.
    *
@@ -101,8 +118,6 @@ class LRUKReplacer {
   void RecordAccess(frame_id_t frame_id, AccessType access_type = AccessType::Unknown);
 
   /**
-   * TODO(P1): Add implementation
-   *
    * @brief Toggle whether a frame is evictable or non-evictable. This function also
    * controls replacer's size. Note that size is equal to number of evictable entries.
    *
@@ -120,8 +135,6 @@ class LRUKReplacer {
   void SetEvictable(frame_id_t frame_id, bool set_evictable);
 
   /**
-   * TODO(P1): Add implementation
-   *
    * @brief Remove an evictable frame from replacer, along with its access history.
    * This function should also decrement replacer's size if removal is successful.
    *
@@ -139,23 +152,41 @@ class LRUKReplacer {
   void Remove(frame_id_t frame_id);
 
   /**
-   * TODO(P1): Add implementation
-   *
    * @brief Return replacer's size, which tracks the number of evictable frames.
    *
    * @return size_t
    */
   auto Size() -> size_t;
-
  private:
-  // TODO(student): implement me! You can replace these member variables as you like.
-  // Remove maybe_unused if you start using them.
-  [[maybe_unused]] std::unordered_map<frame_id_t, LRUKNode> node_store_;
-  [[maybe_unused]] size_t current_timestamp_{0};
-  [[maybe_unused]] size_t curr_size_{0};
-  [[maybe_unused]] size_t replacer_size_;
-  [[maybe_unused]] size_t k_;
-  [[maybe_unused]] std::mutex latch_;
+  struct LRUKHeapLess {
+    auto operator()(const std::shared_ptr<LRUKNode> &left, const std::shared_ptr<LRUKNode> &right) const -> bool {
+      if (left->GetFid() == right->GetFid()) {
+        return false;
+      }
+
+      size_t k = left->GetK();
+      if (left->GetHistorySize() < k && right->GetHistorySize() < k) {
+        return left->GetFrontHistory() < right->GetFrontHistory();
+      }
+      if (left->GetHistorySize() < k) {
+        return true;
+      }
+      if (right->GetHistorySize() < k) {
+        return false;
+      }
+
+      return left->GetFrontHistory() < right->GetFrontHistory();
+    }
+  };
+
+  using LRUKHeap = std::set<std::shared_ptr<LRUKNode>, LRUKHeapLess>;
+
+  LRUKHeap evictable_frames_;
+  std::unordered_map<frame_id_t, std::shared_ptr<LRUKNode>> node_store_;
+  size_t current_timestamp_{0};
+  size_t replacer_size_;
+  size_t k_;
+  std::mutex latch_;
 };
 
 }  // namespace bustub
