@@ -1,30 +1,85 @@
 /**
- * index_iterator.cpp
- */
+* index_iterator.cpp
+*/
 #include <cassert>
 
+#include "common/logger.h"
 #include "storage/index/index_iterator.h"
 
 namespace bustub {
 
 /*
- * NOTE: you can change the destructor/constructor method here
- * set your own input parameters
- */
+* NOTE: you can change the destructor/constructor method here
+* set your own input parameters
+*/
 INDEX_TEMPLATE_ARGUMENTS
-INDEXITERATOR_TYPE::IndexIterator() = default;
+INDEXITERATOR_TYPE::IndexIterator(BufferPoolManager *bpm, ReadPageGuard *r_guard, int idx, page_id_t page_id,
+                                 int cur_size)
+   : bpm_(bpm), page_id_(page_id), cur_idx_(idx), cur_size_(cur_size) {
+ if (r_guard == nullptr) {
+   r_guard_ = std::nullopt;
+ } else {
+   r_guard_.emplace(std::move(*r_guard));
+ }
+}
 
 INDEX_TEMPLATE_ARGUMENTS
 INDEXITERATOR_TYPE::~IndexIterator() = default;  // NOLINT
 
 INDEX_TEMPLATE_ARGUMENTS
-auto INDEXITERATOR_TYPE::IsEnd() -> bool { throw std::runtime_error("unimplemented"); }
+INDEXITERATOR_TYPE::IndexIterator(IndexIterator &&that) noexcept
+   : bpm_(that.bpm_),
+     r_guard_(std::move(that.r_guard_)),
+     page_id_(that.page_id_),
+     cur_idx_(that.cur_idx_),
+     cur_size_(that.cur_size_),
+     leaf_(that.leaf_) {}
 
 INDEX_TEMPLATE_ARGUMENTS
-auto INDEXITERATOR_TYPE::operator*() -> const MappingType & { throw std::runtime_error("unimplemented"); }
+auto INDEXITERATOR_TYPE::operator=(IndexIterator &&that) noexcept -> IndexIterator & {
+ if (this != &that) {
+   bpm_ = that.bpm_;
+   r_guard_ = std::move(that.r_guard_);
+   page_id_ = that.page_id_;
+   cur_idx_ = that.cur_idx_;
+   cur_size_ = that.cur_size_;
+   leaf_ = that.leaf_;
+ }
+ return *this;
+}
 
 INDEX_TEMPLATE_ARGUMENTS
-auto INDEXITERATOR_TYPE::operator++() -> INDEXITERATOR_TYPE & { throw std::runtime_error("unimplemented"); }
+auto INDEXITERATOR_TYPE::IsEnd() -> bool { return r_guard_ == std::nullopt; }
+
+INDEX_TEMPLATE_ARGUMENTS
+auto INDEXITERATOR_TYPE::operator*() -> const MappingType & {
+ BUSTUB_ENSURE(!IsEnd(), "Reached the end");
+ if (leaf_ == nullptr) {
+   leaf_ = r_guard_->As<B_PLUS_TREE_LEAF_PAGE_TYPE>();
+ }
+ return leaf_->PairAt(cur_idx_);
+}
+
+INDEX_TEMPLATE_ARGUMENTS
+auto INDEXITERATOR_TYPE::operator++() -> INDEXITERATOR_TYPE & {
+ BUSTUB_ENSURE(!IsEnd(), "Reached the end");
+ if (++cur_idx_ == cur_size_) {
+   if (leaf_ == nullptr) {
+     leaf_ = r_guard_->As<B_PLUS_TREE_LEAF_PAGE_TYPE>();
+   }
+   page_id_ = leaf_->GetNextPageId();
+   if (page_id_ == INVALID_PAGE_ID) {
+     r_guard_ = std::nullopt;
+   } else {
+     auto next_guard = bpm_->FetchPageRead(page_id_);
+     r_guard_.emplace(std::move(next_guard));
+     leaf_ = r_guard_->As<B_PLUS_TREE_LEAF_PAGE_TYPE>();
+     cur_size_ = leaf_->GetSize();
+   }
+   cur_idx_ = 0;
+ }
+ return *this;
+}
 
 template class IndexIterator<GenericKey<4>, RID, GenericComparator<4>>;
 
