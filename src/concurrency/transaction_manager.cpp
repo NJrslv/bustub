@@ -23,22 +23,34 @@
 namespace bustub {
 
 void TransactionManager::Commit(Transaction *txn) {
-  // Release all the locks.
   ReleaseLocks(txn);
-
   txn->SetState(TransactionState::COMMITTED);
 }
 
 void TransactionManager::Abort(Transaction *txn) {
-  /* TODO: revert all the changes in write set */
+  txn->LockTxn();
+  auto revert_records = txn->GetWriteSet();
+  txn->UnlockTxn();
+
+  for (auto it = revert_records->rbegin(); it != revert_records->rend(); ++it) {
+    switch (it->wtype_) {
+      case WType::INSERT:
+        it->table_heap_->UpdateTupleMeta({INVALID_TXN_ID, INVALID_TXN_ID, true}, it->rid_);
+        break;
+      case WType::DELETE:
+        it->table_heap_->UpdateTupleMeta({INVALID_TXN_ID, INVALID_TXN_ID, false}, it->rid_);
+        break;
+      case WType::UPDATE:
+        break;
+    }
+  }
 
   ReleaseLocks(txn);
-
   txn->SetState(TransactionState::ABORTED);
 }
 
-void TransactionManager::BlockAllTransactions() { UNIMPLEMENTED("block is not supported now!"); }
+void TransactionManager::BlockAllTransactions() { global_txn_latch_.WLock(); }
 
-void TransactionManager::ResumeTransactions() { UNIMPLEMENTED("resume is not supported now!"); }
+void TransactionManager::ResumeTransactions() { global_txn_latch_.WUnlock(); }
 
 }  // namespace bustub
