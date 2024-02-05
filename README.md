@@ -1,7 +1,7 @@
 ## General
 - BusTub is a relational database management system built at Carnegie Mellon University for the Introduction to Database Systems (15-445/645) course. This system was developed for educational purposes and should not be used in production environments.
 
-- `To read more` [click](https://github.com/NJrslv/bustub/blob/master/README_MAIN.md)
+- [Main README](https://github.com/NJrslv/bustub/blob/master/README_MAIN.md)
 
 ## Purpose of bustub repo
 
@@ -10,12 +10,13 @@
 ## Overview
 
 - Here is a collection of completed tasks
-- For each change, links will be added in [History](https://github.com/NJrslv/bustub/njrslv/CMU-assignments/History.md) to showcase the additions made for corresponding assignments.
+- For each completed task see [History](https://github.com/NJrslv/bustub/blob/master/njrslv/CMU-assignments/History.md)
 
 ## My Summary
-[Instructions on how to open a summary](https://github.com/NJrslv/bustub//njrslv/CMU-Summary)
+[Open a summary in Obsidian/excalidraw](https://github.com/NJrslv/bustub/tree/master/njrslv/CMU-assignments)
 
 ## Main links
 - [Source code](https://github.com/NJrslv/bustub)
-- [History](https://github.com/NJrslv/bustub/njrslv/CMU-assignments/History.md)
+- [History](https://github.com/NJrslv/bustub/blob/master/njrslv/CMU-assignments/History.md)
+- [Summary](https://github.com/NJrslv/bustub/tree/master/njrslv/CMU-assignments)
 - [Specification](https://15445.courses.cs.cmu.edu/spring2023/assignments.html)
