@@ -10,12 +10,12 @@
 ## Overview
 
 - Here is a collection of completed tasks
-- For each change, links will be added in [History](https://github.com/NJrslv/Distributed-and-Database-Systems/blob/main/CMU-assignments/History.md) to showcase the additions made for corresponding assignments.
+- For each change, links will be added in [History](https://github.com/NJrslv/bustub/njrslv/CMU-assignments/History.md) to showcase the additions made for corresponding assignments.
 
 ## My Summary
-[Instructions on how to open a summary](https://github.com/NJrslv/Distributed-and-Database-Systems/tree/main/CMU-Summary)
+[Instructions on how to open a summary](https://github.com/NJrslv/bustub//njrslv/CMU-Summary)
 
 ## Main links
 - [Source code](https://github.com/NJrslv/bustub)
-- [History](https://github.com/NJrslv/Distributed-and-Database-Systems/blob/main/CMU-assignments/History.md)
+- [History](https://github.com/NJrslv/bustub/njrslv/CMU-assignments/History.md)
 - [Specification](https://15445.courses.cs.cmu.edu/spring2023/assignments.html)
